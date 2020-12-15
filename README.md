@@ -5,10 +5,10 @@ Script to extract game files from some PS2-era KOEI games
 
 Each archive made up of two files: 
 
-* The Index File which defines the size and offsets of each file
-* Data File is stores the actual file data.
+* The Index File which defines the size and offsets of each file. (Usually has the suffix IDX)
+* Data File that stores the actual file data. (Usually has the suffix BIN or LNK depending on game)
 
-The archive format does not allow for named lookups or error checking through checksums. 
+The archive format is very based and does not allow for named look-ups or error checking through checksums. A file is searched by the id defined in the Index file.
 
 ## Index File
 
@@ -25,8 +25,11 @@ The archive format does not allow for named lookups or error checking through ch
     }
 
     struct IndexEntry {
+        // The offset in the file / 0x800
         uint32 offset;
+        // Depending on the game: the file size rounded  to the next multiple of 0x800 OR the rounded size / 0x800
         uint32 rounded_size;
+        // Depending on the game: the file size rounded to the next multiple of 0x800 OR the actual file size
         uint32 size;
         uint32 zero;
     }
@@ -68,9 +71,9 @@ The data files can either be stored as compressed or uncompressed. If the file i
 
 A compressed file is broken up into variable length blocks, each headed by a single byte flag. 
 
-The flag defines which operation to perform on the block itself. If no flag is defined in the header, the block is not decompressed and will be written to the decompression buffer as is.
+The flag defines which operation to perform on the block itself. If no flag matches the header byte, the block is not compressed and will be written to the decompression buffer as is.
 
-The LZSS decompression dictionary is the current decompression buffer. 
+The LZSS dictionary is the stored within the decompression buffer. 
     
     enum Flags {
         LZSS = 0x80,
